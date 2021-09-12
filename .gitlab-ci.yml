@@ -26,4 +26,5 @@ prettier:
   stage: lint
   script:
     - npm install
+    - npm install
     - npm run check:format
