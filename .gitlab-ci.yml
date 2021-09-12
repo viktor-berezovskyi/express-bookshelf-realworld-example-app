@@ -5,25 +5,26 @@ cache:
   key:
     files:
       - package-lock.json
-    path:
-      - .npm/
+  paths:
+    - .npm/
 
 before_script:
   - npm ci --cache .npm --prefer-offline
 
 variables:
-  NODE_VERSION: node:14.17.0-alpine
+  NODE_IMAGE: node:14.17.0-alpine
 
 eslint:
-  image: $NODE_VERSION
+  image: $NODE_IMAGE
   stage: lint
   script:
     - npm install
     - npm run lint
 
 prettier:
-  image: $NODE_VERSION
+  image: $NODE_IMAGE
   stage: lint
   script:
     - npm install
+    - npm i
     - npm run check:format
