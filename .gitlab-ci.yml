@@ -5,8 +5,8 @@ cache:
   key:
     files:
       - package-lock.json
-  paths:
-    - .npm/
+    paths:
+      - .npm/
 
 before_script:
   - npm ci --cache .npm --prefer-offline
@@ -26,5 +26,4 @@ prettier:
   stage: lint
   script:
     - npm install
-    - npm i
     - npm run check:format
