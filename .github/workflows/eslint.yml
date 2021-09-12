@@ -1,4 +1,4 @@
-name: eslint
+name: lint
 
 on:
   push:
@@ -6,19 +6,43 @@ on:
   pull_request:
     branches: [main]
 
-
 jobs:
   eslint:
     runs-on: ubuntu-latest
+    container:
+      image: node:14.17.0-alpine
     steps:
       - uses: actions/checkout@v2
-      - name: Install NVM
-          run: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-      - name: Install Node.js
+      - name: Cache node.js modules
+        uses: actions/cache@v2
         env:
-          NODE_VERSION: 14.17.0
-        run: nvm install $NODE_VERSION
-      - name: Install dependencies
+          cache-name: npm-${{ hashFiles('package-lock.json') }}
+        with:
+          path: ~/.npm
+          key: ${{ env.cache-name }}
+          restore-key: |
+            ${{ env.cache-name }}
+      - name: Install Dependencies
         run: npm install
-      - name: Lint source cose with ESLint
+      - name: Lint source code with eslint
         run: npm run lint
+
+  prettier:
+    runs-on: ubuntu-latest
+    container:
+      image: node:14.17.0-alpine
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache node.js modules
+        uses: actions/cache@v2
+        env:
+          cache-name: npm-${{ hashFiles('package-lock.json') }}
+        with:
+          path: ~/.npm
+          key: ${{ env.cache-name }}
+          restore-key: |
+            ${{ env.cache-name }}
+      - name: Install Dependencies
+        run: npm install
+      - name: Run Prettier
+        run: npm run check:format
