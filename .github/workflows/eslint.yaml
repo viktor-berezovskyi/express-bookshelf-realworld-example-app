@@ -1,0 +1,40 @@
+name: lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  eslint:
+    container:
+      image: node:14.17.0-alphine
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install NVM
+        run: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+      - name: Install Node.js
+        env:
+          NODE_VERSION: 14.17.0
+        run: nvm install $NODE_VERSION
+      - name: Install Dependencies
+        run: npm install
+      - name: Lint source code with eslint
+        run: npm run lint
+
+  prettier:
+    container:
+      image: node:14.17.0-alphine
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install NVM
+        run: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+      - name: Install Node.js
+        env:
+          NODE_VERSION: 14.17.0
+        run: nvm install $NODE_VERSION
+      - name: Install Dependencies
+        run: npm install
+      - name: Lint source code with eslint
+        run: npm run check:format
