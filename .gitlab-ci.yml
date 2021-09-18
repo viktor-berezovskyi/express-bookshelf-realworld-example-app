@@ -16,6 +16,7 @@ cache:
 
 variables:
   NODE_IMAGE: node:14.17.0-alpine
+  SERVER_IP:  deploy@45.79.211.19
 
 eslint:
   image: $NODE_IMAGE
@@ -47,5 +48,5 @@ deploy:
       --exclude .git
       --exclude .npm
       --exclude public
-      . deploy@172.105.157.164:~/realworld/
-    - ssh deploy@172.105.157.164 "pushd ~/realworld && npm install && pm2 restart realworld && popd"
+      . $SERVER_IP:~/realworld/
+    - ssh $SERVER_IP "pushd ~/realworld && npm install && pm2 restart realworld && popd"
