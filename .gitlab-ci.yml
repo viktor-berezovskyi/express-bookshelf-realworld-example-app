@@ -48,5 +48,5 @@ deploy:
       --exclude .git
       --exclude .npm
       --exclude public
-      . $SERVER_IP:~/realworld/
-    - ssh $SERVER_IP "pushd ~/realworld && npm install && pm2 restart realworld && popd"
+      . deploy@45.79.211.19:~/realworld/
+    - ssh deploy@45.79.211.19 "pushd ~/realworld && npm install && pm2 restart realworld && popd"
