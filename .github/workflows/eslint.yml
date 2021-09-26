@@ -72,7 +72,7 @@ jobs:
           --exclude .gitignore \
           --exclude .git \
           --exclude public \
-          . "$SERVER":~/realworld/
+          . deploy@45.79.211.19:~/realworld/
       - name: Restart the application
         run: |
-          ssh "$SERVER" "pushd ~/realworld && npm install && pm2 restart realworld && popd"
+          ssh deploy@45.79.211.19 "pushd ~/realworld && npm install && pm2 restart realworld && popd"
