@@ -1,110 +1,78 @@
-# имя нашего workflow. Используется исключительно для отображения в интерфейсе GitHub
-name: test
+name: eslint, prettier, deploy
 
-# правила срабатывания - события GitHub, на которые
-# должен срабатывать текущий workflow.
-# должен срабатывать текущий workflow.
-on: [push]
+on:
+  push:
+    branches: [main]
 
-# workflow состоит из одной или нескольких job
-# job работают параллельно по умолчанию
+  workflow_dispatch:
+
 jobs:
-  build:
-    # имя для отображения в интерфейсе GitHub
-    name: Build
-    # обязательный параметр, который указывает где будет запущена job: облачный runner, self-hosted и т.д.
-    runs-on: ubuntu-latest
-    # укажем, что для этой job нам нужен специальный контейнер
-    container:
-      # возьмем Docker образ Node.js из публичного реестра
-      image: node:14.17.0-alpine
-    # последовательные задачи (шаги), важно помнить, что переменные окружения не сохраняются
-    # между шагами и их нужно пробрасывать, если требуется.
-    steps:
-      # указываем action, который будет запущен как часть job
-      # В текущем случае это клонирование репозитория
-      - uses: actions/checkout@v2
-      # Кеширование npm
-      - name: Cache dependencies
-        # включаем специальный action
-        uses: actions/cache@v2
-        # передаем параметры
-        with:
-          # что кешировать (путь)
-          path: ~/.npm
-          # ключ кеширования (хеш)
-          key: npm-${{ hashFiles('package-lock.json') }}
-          # ключ для восстановления кеша
-          restore-keys: npm-
-      # Установка зависимостей проекта
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
-  # название job, на которое можно ссылаться из других мест,
-  # например, когда нам нужно указать, что две jobs
-  # работают последовательно:
-  # jobs:
-  #   build:
-  #   eslint:
-  #     needs: build
   eslint:
-    needs: build
-    # имя для отображения в интерфейсе GitHub
-    name: ESLint
-    # обязательный параметр, который указывает где будет запущена job: облачный runner, self-hosted и т.д.
     runs-on: ubuntu-latest
-    # укажем, что для этой job нам нужен специальный контейнер
     container:
-      # возьмем Docker образ Node.js из публичного реестра
       image: node:14.17.0-alpine
-    # последовательные задачи (шаги), важно помнить, что переменные окружения не сохраняются
-    # между шагами и их нужно пробрасывать, если требуется.
     steps:
-      # указываем action, который будет запущен как часть job
-      # В текущем случае это клонирование репозитория
       - uses: actions/checkout@v2
-      # Кеширование npm
-      - name: Cache dependencies
-        # включаем специальный action
+      - name: Cache node.js modules
         uses: actions/cache@v2
-        # передаем параметры
+        env:
+          cache-name: npm-${{ hashFiles('package-lock.json') }}
         with:
-          # что кешировать (путь)
           path: ~/.npm
-          # ключ кеширования (хеш)
-          key: npm-${{ hashFiles('package-lock.json') }}
-          # ключ для восстановления кеша
-          restore-keys: npm-
-      # Запуск ESLint
-      - name: Lint source code with ESLint
+          key: ${{ env.cache-name }}
+          restore-key: |
+            ${{ env.cache-name }}
+      - name: Install Dependencies
+        run: npm install
+      - name: Lint source code with eslint
         run: npm run lint
+
   prettier:
-    needs: build
-    # имя для отображения в интерфейсе GitHub
-    name: Prettier
-    # обязательный параметр, который указывает где будет запущена job: облачный runner, self-hosted и т.д.
+    needs: eslint
     runs-on: ubuntu-latest
-    # укажем, что для этой job нам нужен специальный контейнер
     container:
-      # возьмем Docker образ Node.js из публичного реестра
       image: node:14.17.0-alpine
-    # последовательные задачи (шаги), важно помнить, что переменные окружения не сохраняются
-    # между шагами и их нужно пробрасывать, если требуется.
     steps:
-      # указываем action, который будет запущен как часть job
-      # В текущем случае это клонирование репозитория
       - uses: actions/checkout@v2
-      # Кеширование npm
-      - name: Cache dependencies
-        # включаем специальный action
+      - name: Cache node.js modules
         uses: actions/cache@v2
-        # передаем параметры
+        env:
+          cache-name: npm-${{ hashFiles('package-lock.json') }}
         with:
-          # что кешировать (путь)
           path: ~/.npm
-          # ключ кеширования (хеш)
-          key: npm-${{ hashFiles('package-lock.json') }}
-          # ключ для восстановления кеша
-          restore-keys: npm-
-      # Запуск ESLint
-      - name: Lint source code with Prettier
+          key: ${{ env.cache-name }}
+          restore-key: |
+            ${{ env.cache-name }}
+      - name: Install Dependencies
+        run: npm install
+      - name: Run Prettier
         run: npm run check:format
+
+  deploy:
+    needs: prettier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup SSH
+        run: |
+          echo "$SSH_PRIVATE_KEY"
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 700 ~/.ssh
+          chmod 600 ~/.ssh/id_rsa
+          echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          SERVER: deploy@45.79.211.19
+      - name: Copy files to the server
+        run: |
+          rsync -a --progress --human-readable --delete \
+          --exclude-from '.gitignore' \
+          --exclude .gitignore \
+          --exclude .git \
+          --exclude public \
+          . deploy@172.105.157.164:~/realworld/
+      - name: Restart the application
+        run: |
+          ssh "$SERVER" "pushd ~/realworld && npm install && pm2 restart realworld && popd"
