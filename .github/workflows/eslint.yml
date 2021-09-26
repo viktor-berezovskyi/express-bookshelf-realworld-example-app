@@ -8,9 +8,6 @@ on:
 
 env:
   SERVER: deploy@45.79.211.19
-  CACHE_NAME: npm-${{ hashFiles('package-lock.json') }}
-  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-  SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
 
 jobs:
   eslint:
@@ -22,7 +19,7 @@ jobs:
       - name: Cache node.js modules
         uses: actions/cache@v2
         env:
-          cache-name: $CACHE_NAME
+          cache-name: npm-${{ hashFiles('package-lock.json') }}
         with:
           path: ~/.npm
           key: ${{ env.cache-name }}
@@ -43,7 +40,7 @@ jobs:
       - name: Cache node.js modules
         uses: actions/cache@v2
         env:
-          cache-name: $CACHE_NAME
+          cache-name: npm-${{ hashFiles('package-lock.json') }}
         with:
           path: ~/.npm
           key: ${{ env.cache-name }}
@@ -67,6 +64,9 @@ jobs:
           chmod 700 ~/.ssh
           chmod 600 ~/.ssh/id_rsa
           echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
       - name: Copy files to the server
         run: |
           rsync -a --progress --human-readable --delete \
