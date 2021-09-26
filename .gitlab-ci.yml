@@ -1,5 +1,5 @@
 stages:
-#  - lint
+  #  - lint
   - deploy
 
 cache:
@@ -16,14 +16,14 @@ cache:
 
 variables:
   NODE_IMAGE: node:14.17.0-alpine
-  SERVER_IP:  deploy@45.79.211.19
+  SERVER_IP: deploy@45.79.211.19
 
 #eslint:
 #  image: $NODE_IMAGE
 #  stage: lint
- # script:
- #   - npm install
- #   - npm run lint
+# script:
+#   - npm install
+#   - npm run lint
 
 # prettier:
 #   image: $NODE_IMAGE
