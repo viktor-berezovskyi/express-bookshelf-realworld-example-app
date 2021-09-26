@@ -31,7 +31,6 @@ variables:
 #   script:
 #     - npm install
 #     - npm run check:format
-#
 
 deploy:
   image: ubuntu:latest
