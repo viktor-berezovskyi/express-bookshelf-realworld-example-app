@@ -21,11 +21,13 @@ jobs:
       - uses: actions/checkout@v2
       - name: Cache node.js modules
         uses: actions/cache@v2
+        env:
+          cache-name: $CACHE_NAME
         with:
           path: ~/.npm
-          key: $CACHE_NAME
+          key: ${{ env.cache-name }}
           restore-key: |
-            $CACHE_NAME
+            ${{ env.cache-name }}
       - name: Install Dependencies
         run: npm install
       - name: Lint source code with eslint
@@ -40,9 +42,11 @@ jobs:
       - uses: actions/checkout@v2
       - name: Cache node.js modules
         uses: actions/cache@v2
+        env:
+          cache-name: $CACHE_NAME
         with:
           path: ~/.npm
-          key: $CACHE_NAME
+          key: ${{ env.cache-name }}
           restore-key: |
             ${{ env.cache-name }}
       - name: Install Dependencies
